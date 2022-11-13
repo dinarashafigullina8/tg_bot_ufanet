@@ -1,9 +1,21 @@
-import sqlite3
+import mysql.connector
+from getpass import getpass
+from mysql.connector import connect, Error
+
 
 class BotDB:
 
-    def __init__(self, db_file):
-        self.conn = sqlite3.connect(db_file)
+    def __init__(self):
+        try:
+            with connect(
+                host="localhost",
+                user=input("Имя пользователя: "),
+                password=getpass("Пароль: "),
+                database="telegram_bot",
+            ) as self.conn:
+                print(self.conn)
+        except Error as e:
+            print(e)
         self.cursor = self.conn.cursor()
 
     def user_exists(self, telegramUserId):
