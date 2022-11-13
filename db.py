@@ -1,45 +1,56 @@
 import mysql.connector
 from getpass import getpass
 from mysql.connector import connect, Error
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+USER = os.getenv('USER')
+PASSWORD=os.getenv('PASSWORD')
+
+
+config = {
+'user': 'root',
+'password': '12345',
+'host': '127.0.0.1',
+'port': '3306',
+'database': 'telegram_bot',
+'raise_on_warnings': True,}
+
+cnx = mysql.connector.connect(**config)
+cursor = cnx.cursor(buffered=True)
+
+# with cnx.cursor() as cursor:   
+#     cursor = cursor
+# except Error as e:
+# print('OK',e)
 
 class BotDB:
-
     def __init__(self):
-        try:
-            with connect(
-                host="localhost",
-                user=input("Имя пользователя: "),
-                password=getpass("Пароль: "),
-                database="telegram_bot",
-            ) as self.conn:
-                print(self.conn)
-        except Error as e:
-            print(e)
-        self.cursor = self.conn.cursor()
+        print('OK')
+    
+        
 
     def user_exists(self, telegramUserId):
         """Проверяем, есть ли юзер в базе"""
-        result = self.cursor.execute("SELECT 'telegramUserId' FROM 'user' WHERE 'telegramUserId' = ?", (telegramUserId,))
-        return bool(len(result.fetchall()))
+        result = cursor.execute("SELECT 'telegramUserId' FROM telegram_bot.user WHERE 'telegramUserId' = %s", (telegramUserId,))
+        return bool(len(cursor.fetchall()))
 
     def get_user_id(self, telegramUserId):
         """Достаем юзера в базе по его user_id"""
-        result = self.cursor.execute("SELECT 'telegramUserId' FROM 'user' WHERE 'telegramUserId' = ?", (telegramUserId,))
-        return result.fetchone()[0]
+        cursor.execute("SELECT 'telegramUserId' FROM telegram_bot.user WHERE 'telegramUserId' = %s", (telegramUserId,))
+        return cursor.fetchone()
 
-    def add_user(self, telegramUserId):
+    def create_user(self, telegramUserId):
         """Добавляем юзера в базу"""
-        self.cursor.execute("INSERT INTO 'user' ('telegramUserId') VALUES (?)", (telegramUserId,))
-        return self.conn.commit()
+        cursor.execute("INSERT INTO telegram_bot.user (telegramUserId) VALUES (%s)", (telegramUserId,))
+        return cnx.commit()
 
-    def add_message(self, user_id, operation, value):
+    def create_message(self, user_id, text):
         """Создаем запись сообщения"""
-        self.cursor.execute("INSERT INTO 'message' ('createdAt', 'text') VALUES (?, ?, ?)",
-            (self.get_user_id(user_id),
-            operation == "+",
-            value))
-        return self.conn.commit()
+        cursor.execute("INSERT INTO telegram_bot.message (user_id,text) VALUES (%s, %s)",(user_id, text))
+        return cnx.commit()
     
     def read_last(self, text):
         """Выводим последнее сообщение"""

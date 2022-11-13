@@ -1,26 +1,72 @@
-import requests
-from time import sleep
+import requests  
+import datetime
+from config import BOT_TOKEN
+from db import BotDB
 
-url = 'https://api.telegram.org/bot5649451560:AAGib_eO3tvCAuqHoNLq5hpya8__69-ZMs4'
 
-def get_updates_json(request):
-    params = {'timeout': 100, 'offset': None}
-    responce = requests.get(request + '/getupdates', data=params )
-    return responce.json()
+class BotHandler:
 
-def last_update(data):
-    results = data['result']
-    total_updates = len(results) - 1
-    return results[total_updates]
+
+    def __init__(self):
+        self.db = BotDB()
+        self.token = BOT_TOKEN
+        self.api_url = 'https://api.telegram.org/bot5649451560:AAGib_eO3tvCAuqHoNLq5hpya8__69-ZMs4/'
+
+
+    def get_updates(self, timeout=30):
+        method = 'getUpdates'
+        params = {'timeout': timeout}
+        resp = requests.get(self.api_url + method, params)
+        result_json = resp.json()['result']
+        self.update_id = result_json['update_id']
+        print(self.update_id)
+        for i in result_json:
+            message = i['message']
+            id = str(message['from']['id'])
+            # if message['text'] == '/start':    
+            #     self.start(id)
+            # if message['text'].startswith('/write'):
+            #     text = message['text']
+            #     self.db.create_message(self.db.get_user_id(id), text[7:])
+            #     self.send_message('заметка {self.id} сохранена')
+                
+
+
+    def start(self,id):
+        if self.db.user_exists(id) == False:
+            self.db.create_user(id)
+        else:
+            self.id = self.db.get_user_id(id)
+
+    def send_message(self, text):
+        params = {'text': text}
+        method = 'sendMessage'
+        resp = requests.post(self.api_url + method, params)
+        return resp
+
+    def get_last_update(self):
+        get_result = self.get_updates()
+
+        if len(get_result) > 0:
+            last_update = get_result[-1]
+        else:
+            last_update = get_result[len(get_result)]
+
+        return last_update
+
+greet_bot = BotHandler()  
+
 
 def main():  
-    update_id = last_update(get_updates_json(url))['update_id']
-    # while True:
-    #     if update_id == last_update(get_updates_json(url))['update_id']:
-    #        send_mess(get_chat_id(last_update(get_updates_json(url))), 'test')
-    #        update_id += 1
-    sleep(1)       
+    new_offset = None
+
+    while True:
+        greet_bot.get_updates(new_offset)
+
 
 if __name__ == '__main__':  
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        exit()
 
