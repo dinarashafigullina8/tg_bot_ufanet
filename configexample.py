@@ -1,0 +1,1 @@
+BOT_TOKEN="token to access the HTTP API"

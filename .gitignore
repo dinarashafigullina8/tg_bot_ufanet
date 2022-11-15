@@ -1,3 +1,5 @@
 config.py
 .env
 py_log.log
+__pycache__/
+.pyc 

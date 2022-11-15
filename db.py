@@ -21,8 +21,6 @@ cnx = mysql.connector.connect(**config)
 cursor = cnx.cursor(buffered=True)
 
 class BotDB:
-    def __init__(self):
-        print('OK')
 
     def user_exists(self, telegramUserId):
         """Проверяем, есть ли юзер в базе"""
