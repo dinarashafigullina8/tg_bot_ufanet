@@ -21,16 +21,9 @@ config = {
 cnx = mysql.connector.connect(**config)
 cursor = cnx.cursor(buffered=True)
 
-# with cnx.cursor() as cursor:   
-#     cursor = cursor
-# except Error as e:
-# print('OK',e)
-
 class BotDB:
     def __init__(self):
         print('OK')
-    
-        
 
     def user_exists(self, telegramUserId):
         """Проверяем, есть ли юзер в базе"""
@@ -53,6 +46,11 @@ class BotDB:
         last_id = cursor.lastrowid
         return cnx.commit(), last_id 
 
+    def message_tag(self, message_id, tag_id):
+        """Создаем связь сообщения и тэга"""
+        cursor.execute("INSERT INTO telegram_bot.message_tag (message_id, tag_id) VALUES (%s, %s)", (message_id, tag_id))
+        return cnx.commit()
+
     def read_last(self, user_id):
         """Выводим последнее сообщение"""
         cursor.execute("SELECT text FROM telegram_bot.message WHERE user_id = %s ORDER BY createdAT DESC LIMIT 1", (user_id,))
@@ -73,9 +71,9 @@ class BotDB:
         cursor.execute("SELECT text FROM telegram_bot.message WHERE user_id = %s ORDER BY createdAT", (user_id,))
         return cursor.fetchall()
 
-    def read_tag(self,user_id, text):
+    def read_tag(self,tag_id,user_id):
         """Выводим все сообщения с тэгом"""
-        cursor.execute("SELECT text FROM telegram_bot.message WHERE text LIKE %s AND user_id = %s", ('%%' + text + '%%', user_id))
+        cursor.execute("SELECT text FROM telegram_bot.message left JOIN telegram_bot.message_tag ON telegram_bot.message.message_id = telegram_bot.message_tag.message_id WHERE tag_id = %s AND user_id = %s ORDER BY createdAT", (tag_id, user_id))
         return cursor.fetchall()
         
     def tag_exist(self, name):
@@ -86,7 +84,8 @@ class BotDB:
     def write_tag_new(self, name, descript):
         """Записываем новый тэг"""
         cursor.execute("INSERT INTO telegram_bot.tag (name, descript) VALUES (%s, %s)", (name, descript))
-        return cnx.commit()
+        last_id = cursor.lastrowid
+        return cnx.commit(), last_id
     
     def get_tag_id(self, name):
         """Поиск id тэга"""
