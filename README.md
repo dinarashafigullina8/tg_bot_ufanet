@@ -7,18 +7,23 @@ The repository contains a telegram bot application created without the use of au
 - config.py - bot token file
 - .env - file with username and password for MySQL
 ## Install MySQL:
+```
 $ sudo apt-install mysql 
 
 $ mysql -u root -p
 
+```
 Run the following to setup root password.
 
+```
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
 
 FLUSH PRIVILEGES;
-
+```
 #### _NOTE: Make sure the telegram_bot database is created on your development machine!_
+```
 CREATE DATABASE telegram_bot;
+```
 
 ## Import data from MySQL:
 We go to MySQLWorkbench, create a connection, enter the password from the MySQL. Next, find the button Server in the menu, select Data Import. 
