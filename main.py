@@ -31,9 +31,8 @@ class BotHandler:
                 command = message_text[0]
                 text = message_text[2]
                 id = str(message['from']['id'])
-                loggegMessage = ''
                 logDate = str(datetime.datetime.fromtimestamp(message['date']))
-                loggegMessage += 'id: '+ id + ', ' + 'mesage: ' + message['text'] + ', ' + 'date: ' + logDate
+                loggegMessage = 'id: '+ id + ', ' + 'mesage: ' + message['text'] + ', ' + 'date: ' + logDate
                 logging.info(loggegMessage)
                 user_id = self.db.get_user_id(id)[0]
                 telegramUserId = self.db.get_user_id(id)[1]
@@ -65,9 +64,9 @@ class BotHandler:
         self.send_message(telegramId, f'заметка {message_id} сохранена')
         if '#' in text:
             text = text.split(' ')
-            for t in text and self.db.tag_exist(t) == False:
-                if t.startswith('#'):
-                    res,tag_id = self.db.write_tag_new(t, '')
+            for word in text and self.db.tag_exist(word) == False:
+                if word.startswith('#'):
+                    res,tag_id = self.db.write_tag_new(word, '')
                     self.db.message_tag(message_id, tag_id)
 
 
@@ -87,20 +86,20 @@ class BotHandler:
             self.send_message(telegramId, answer)
 
     def read_all(self, id, telegramId):
-        answer = self.db.read_all(id)
+        answers = self.db.read_all(id)
         res = ''
-        for i in answer:
-            for j in i:
-                res += j+'\n'
+        for answer in answers:
+            for tag in answer:
+                res += tag+'\n'
         self.send_message(telegramId, res)
 
     def read_tag(self, text, id, telegramId):
         tag = self.db.get_tag_id(text)[0]
-        answer = self.db.read_tag(tag,id)
+        answers = self.db.read_tag(tag,id)
         res = ''
-        for i in answer:
-            for j in i:
-                res += j+'\n'
+        for answer in answers:
+            for tag in answer:
+                res += answer +'\n'
         self.send_message(telegramId, res)
 
     def write_tag(self,message):
@@ -132,12 +131,12 @@ class BotHandler:
     
     def tag_all(self,telegramId):
         answer = ''
-        res = self.db.tag_all()
-        for r in res:
-            if r[2] != '':
-                answer += r[2] + '\n'
+        results = self.db.tag_all()
+        for res in results:
+            if res[2] != '':
+                answer += res[2] + '\n'
             else:
-                answer += r[1] + ' нет описания' + '\n'
+                answer += res[1] + ' нет описания' + '\n'
         self.send_message(telegramId, answer)
 
 
