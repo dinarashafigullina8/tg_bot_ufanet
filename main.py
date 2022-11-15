@@ -27,7 +27,6 @@ class BotHandler:
             for i in result_json:
                 message = i['message']
                 message_text = message['text'].partition(' ')
-                print(message_text)
                 command = message_text[0]
                 text = message_text[2]
                 id = str(message['from']['id'])
@@ -42,7 +41,7 @@ class BotHandler:
                     self.write(user_id,telegramUserId, text)
                 if command == '/read_last':
                     self.read_last(user_id, telegramUserId)
-                if command == '/read ':
+                if command == '/read':
                     self.read(text, user_id,telegramUserId)
                 if command == '/read_all':
                     self.read_all(user_id, telegramUserId)
@@ -50,7 +49,7 @@ class BotHandler:
                     self.read_tag(text, user_id, telegramUserId)
                 if command == '/write_tag':
                     self.write_tag(message)
-                if command == '/tag ':
+                if command == '/tag':
                     self.tag(message, telegramUserId)
                 if command == '/tag_all':
                     self.tag_all(telegramUserId)
@@ -99,7 +98,7 @@ class BotHandler:
         res = ''
         for answer in answers:
             for tag in answer:
-                res += answer +'\n'
+                res += tag +'\n'
         self.send_message(telegramId, res)
 
     def write_tag(self,message):
@@ -107,9 +106,10 @@ class BotHandler:
         if len(write_tag) < 2:
             return False
         tag = '#' + write_tag[0]
+        print(tag)
         descript = '#' + write_tag[1]
-        tag_id = self.db.get_tag_id(tag)[0]
         if self.db.tag_exist(tag) == True:
+            tag_id = self.db.get_tag_id(tag)[0]
             self.db.write_tag_change(tag_id, descript)
         else:
             self.db.write_tag_new(tag, descript)
@@ -127,7 +127,7 @@ class BotHandler:
                 answer += tag + ' ' + 'нет описания' + '\n'
             else:
                 answer +=  res + '\n'
-            self.send_message(telegramId, answer)
+        self.send_message(telegramId, answer)
     
     def tag_all(self,telegramId):
         answer = ''
