@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+import sys
+sys.path.append('/usr/lib/python3/dist-packages')
 import requests  
 import datetime
 from config import BOT_TOKEN
 from db import BotDB
 import logging
-
 
 
 logging.basicConfig(level=logging.INFO, filename="py_log.log")
@@ -13,7 +15,7 @@ class BotHandler:
     def __init__(self):
         self.db = BotDB()
         self.token = BOT_TOKEN
-        self.api_url ='https://api.telegram.org/bot' + f'{self.token}' + '/'
+        self.api_url ='https://api.telegram.org/bot{}/'.format(self.token)
         self.last_update = 0 
 
 
@@ -60,7 +62,7 @@ class BotHandler:
 
     def write(self,id, telegramId, text):
         create_message, message_id = self.db.create_message(id, text)
-        self.send_message(telegramId, f'заметка {message_id} сохранена')
+        self.send_message(telegramId, 'заметка {} сохранена'.format(message_id))
         if '#' in text:
             text = text.split(' ')
             for word in text and self.db.tag_exist(word) == False:
@@ -76,9 +78,9 @@ class BotHandler:
     def read(self, text, id, telegramId):
         message_id_exist, user_id_db = self.db.message_id_exist(text, id)
         if message_id_exist == False:
-            messageText =f'заметка {text} не найдена'
+            messageText = 'заметка {} не найдена'.format(text)
             if user_id_db == id:
-                messageText = f'заметка {text} принадлежит другому пользователю'
+                messageText = 'заметка {} принадлежит другому пользователю'.format(text)
             self.send_message(telegramId, messageText)
         else:
             answer = self.db.read_id(text, id)
@@ -93,7 +95,12 @@ class BotHandler:
         self.send_message(telegramId, res)
 
     def read_tag(self, text, id, telegramId):
+        print(text)
+        if len(text.split(' ')) > 1:
+            self.send_message(telegramId, 'Вы ввели больше одного тэга')
+            return False
         tag = self.db.get_tag_id(text)[0]
+        print(tag)
         answers = self.db.read_tag(tag,id)
         res = ''
         for answer in answers:
@@ -124,7 +131,7 @@ class BotHandler:
             tag_id = self.db.get_tag_id(tag)[0]
             res = self.db.tag(tag_id)[0]
             if res == '':
-                answer += tag + ' ' + 'нет описания' + '\n'
+                answer += u'{} нет описания \n'.format(tag)
             else:
                 answer +=  res + '\n'
         self.send_message(telegramId, answer)
@@ -132,11 +139,12 @@ class BotHandler:
     def tag_all(self,telegramId):
         answer = ''
         results = self.db.tag_all()
+        print(results)
         for res in results:
             if res[2] != '':
                 answer += res[2] + '\n'
             else:
-                answer += res[1] + ' нет описания' + '\n'
+                answer += u'{} нет описания \n'.format(res[1])
         self.send_message(telegramId, answer)
 
 

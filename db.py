@@ -1,6 +1,5 @@
+# -*- coding: utf-8 -*-
 import mysql.connector
-from getpass import getpass
-from mysql.connector import connect, Error
 import os
 from dotenv import load_dotenv
 
@@ -12,7 +11,7 @@ PASSWORD=os.getenv('PASSWORD')
 
 config = {
 'user': 'root',
-'password': f'{PASSWORD}',
+'password': '{}'.format(PASSWORD),
 'host': '127.0.0.1',
 'port': '3306',
 'database': 'telegram_bot',
