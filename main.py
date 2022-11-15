@@ -61,7 +61,6 @@ class BotHandler:
             self.db.create_user(id)
 
     def write(self,id, telegramId, text):
-        # text = message['text'][7:]
         create_message, message_id = self.db.create_message(id, text)
         self.send_message(telegramId, f'заметка {message_id} сохранена')
         if '#' in text:
@@ -76,15 +75,15 @@ class BotHandler:
         answer = self.db.read_last(id)
         self.send_message(telegramId, answer)
 
-    def read(self, message_id, id, telegramId):
+    def read(self, text, id, telegramId):
         message_id_exist, user_id_db = self.db.message_id_exist(text, id)
         if message_id_exist == False:
-            messageText =f'заметка {message_id} не найдена'
+            messageText =f'заметка {text} не найдена'
             if user_id_db == id:
-                messageText = f'заметка {message_id} принадлежит другому пользователю'
+                messageText = f'заметка {text} принадлежит другому пользователю'
             self.send_message(telegramId, messageText)
         else:
-            answer = self.db.read_id(message_id, id)
+            answer = self.db.read_id(text, id)
             self.send_message(telegramId, answer)
 
     def read_all(self, id, telegramId):
