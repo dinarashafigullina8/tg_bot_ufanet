@@ -13,7 +13,7 @@ class BotHandler:
     def __init__(self):
         self.db = BotDB()
         self.token = BOT_TOKEN
-        self.api_url = 'https://api.telegram.org/bot5649451560:AAGib_eO3tvCAuqHoNLq5hpya8__69-ZMs4/'
+        self.api_url ='https://api.telegram.org/bot' + f'{self.token}' + '/'
         self.last_update = 0 
 
 
@@ -26,59 +26,58 @@ class BotHandler:
             self.last_update = result_json[-1]['update_id']
             for i in result_json:
                 message = i['message']
-                res = ''
-                res += 'id: '+ str(message['from']['id']) + ', ' + 'mesage: ' + message['text'] + ', ' + 'date: ' + str(datetime.datetime.fromtimestamp(message['date']))
-                logging.info(res)
+                message_text = message['text'].partition(' ')
+                print(message_text)
+                command = message_text[0]
+                text = message_text[2]
                 id = str(message['from']['id'])
+                loggegMessage = ''
+                logDate = str(datetime.datetime.fromtimestamp(message['date']))
+                loggegMessage += 'id: '+ id + ', ' + 'mesage: ' + message['text'] + ', ' + 'date: ' + logDate
+                logging.info(loggegMessage)
                 user_id = self.db.get_user_id(id)[0]
                 telegramUserId = self.db.get_user_id(id)[1]
-                if message['text'] == '/start':    
+                if command == '/start':    
                     self.start(id)
-                if message['text'].startswith('/write '):
-                    self.write(message,user_id,telegramUserId)
-                if message['text'] == '/read_last':
+                if command == '/write':
+                    self.write(user_id,telegramUserId, text)
+                if command == '/read_last':
                     self.read_last(user_id, telegramUserId)
-                if message['text'].startswith('/read '):
-                    self.read(message, user_id,telegramUserId)
-                if message['text'] == '/read_all':
+                if command == '/read ':
+                    self.read(text, user_id,telegramUserId)
+                if command == '/read_all':
                     self.read_all(user_id, telegramUserId)
-                if message['text'][:9] == '/read_tag':
-                    self.read_tag(message, user_id, telegramUserId)
-                if message['text'].startswith('/write_tag'):
+                if command == '/read_tag':
+                    self.read_tag(text, user_id, telegramUserId)
+                if command == '/write_tag':
                     self.write_tag(message)
-                if message['text'].startswith('/tag '):
+                if command == '/tag ':
                     self.tag(message, telegramUserId)
-                if message['text'] == '/tag_all':
+                if command == '/tag_all':
                     self.tag_all(telegramUserId)
 
     def start(self,id):
         if self.db.user_exists(id) == False:
             self.db.create_user(id)
-        else:
-            self.id = self.db.get_user_id(id)
 
-    def write(self,message,id, telegramId):
-        text = message['text'][7:]
+    def write(self,id, telegramId, text):
+        # text = message['text'][7:]
         create_message, message_id = self.db.create_message(id, text)
-        print(create_message)
         self.send_message(telegramId, f'заметка {message_id} сохранена')
-        print(self.send_message(telegramId, f'заметка {message_id} сохранена'))
         if '#' in text:
             text = text.split(' ')
-            for t in text:
+            for t in text and self.db.tag_exist(t) == False:
                 if t.startswith('#'):
-                    if self.db.tag_exist(t) == False:
-                        res,tag_id = self.db.write_tag_new(t, '')
-                        self.db.message_tag(message_id, tag_id)
+                    res,tag_id = self.db.write_tag_new(t, '')
+                    self.db.message_tag(message_id, tag_id)
 
 
     def read_last(self,id,telegramId):
         answer = self.db.read_last(id)
         self.send_message(telegramId, answer)
 
-    def read(self, message, id, telegramId):
-        message_id = message['text'][6:]
-        message_id_exist, user_id_db = self.db.message_id_exist(message_id, id)
+    def read(self, message_id, id, telegramId):
+        message_id_exist, user_id_db = self.db.message_id_exist(text, id)
         if message_id_exist == False:
             messageText =f'заметка {message_id} не найдена'
             if user_id_db == id:
@@ -96,12 +95,9 @@ class BotHandler:
                 res += j+'\n'
         self.send_message(telegramId, res)
 
-    def read_tag(self, message, id, telegramId):
-        text = message['text'][10:]
+    def read_tag(self, text, id, telegramId):
         tag = self.db.get_tag_id(text)[0]
-        print(tag)
         answer = self.db.read_tag(tag,id)
-        print(answer)
         res = ''
         for i in answer:
             for j in i:
@@ -125,12 +121,12 @@ class BotHandler:
         if len(tags) < 2:
             return False
         answer = ''
-        for t in tags:
-            t = '#' + t
-            tag_id = self.db.get_tag_id(t)[0]
+        for tag in tags:
+            tag = '#' + tag
+            tag_id = self.db.get_tag_id(tag)[0]
             res = self.db.tag(tag_id)[0]
             if res == '':
-                answer += t + ' ' + 'нет описания' + '\n'
+                answer += tag + ' ' + 'нет описания' + '\n'
             else:
                 answer +=  res + '\n'
             self.send_message(telegramId, answer)
@@ -149,8 +145,7 @@ class BotHandler:
     def send_message(self,id, text):
         params = {'chat_id':id,'text': text}
         method = 'sendMessage'
-        resp = requests.post(self.api_url + method, params)
-        return resp
+        return requests.post(self.api_url + method, params)
 
     def get_last_update(self):
         get_result = self.get_updates()

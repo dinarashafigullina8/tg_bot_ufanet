@@ -12,7 +12,7 @@ PASSWORD=os.getenv('PASSWORD')
 
 config = {
 'user': 'root',
-'password': '12345',
+'password': f'{PASSWORD}',
 'host': '127.0.0.1',
 'port': '3306',
 'database': 'telegram_bot',
