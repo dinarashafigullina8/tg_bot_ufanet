@@ -159,4 +159,4 @@ class BotHandler:
 
         return last_update
 
-greet_bot = BotHandler()  
+ 
