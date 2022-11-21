@@ -4,8 +4,8 @@ The repository contains a telegram bot application created without the use of au
 - python == 2.7
 - pip-20.3.4
 - mysql-connector-python==8.0.11
-- config.py - bot token file
-- .env - file with username and password for MySQL
+- config.py - bot token file (an example is the configexample.py)
+- .env - file with username and password for MySQL (an example is the .envexample)
 ## Install MySQL:
 ```
 $ sudo apt-install mysql 
